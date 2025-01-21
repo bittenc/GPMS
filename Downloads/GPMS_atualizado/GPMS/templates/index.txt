@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balcão UFF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        header {
+            background: #222;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            cursor: pointer;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        form label {
+            margin: 10px 0 5px;
+        }
+        form input, form textarea, form button, form select {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #555;
+            color: white;
+        }
+        form button {
+            background: #444;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        form button:hover {
+            background: #666;
+        }
+        .item {
+            border-bottom: 1px solid #555;
+            padding: 10px 0;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item h3 {
+            margin: 0;
+        }
+        .item p {
+            margin: 5px 0 0;
+        }
+        .item .user-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #444;
+            border-radius: 5px;
+        }
+        .back-button {
+            margin-top: 10px;
+            padding: 10px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background: #666;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+        .item img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .sold {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header onclick="showLoginScreen()">
+    <h1>Balcão UFF</h1>
+</header>
+
+<div class="container" id="login-screen">
+    <h2>Login</h2>
+    <form id="login-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+
+        <label for="password">Senha:</label>
+        <input type="password" id="password" required>
+
+        <button type="button" onclick="validateLogin()">Entrar</button>
+        <p id="login-error" class="error" style="display: none;">O email deve terminar em @id.uff.br.</p>
+    </form>
+</div>
+
+<div class="container" id="create-ad-screen" style="display: none;">
+    <h2>Criar Anúncio</h2>
+    <form id="create-ad-form">
+        <label for="item-name">Nome do Item:</label>
+        <input type="text" id="item-name" required>
+
+        <label for="item-description">Descrição:</label>
+        <textarea id="item-description" rows="4" required></textarea>
+
+        <label for="item-price">Preço (R$):</label>
+        <input type="number" id="item-price" required>
+
+        <label for="item-image">Imagem do Item:</label>
+        <input type="file" id="item-image" accept="image/*">
+
+        <button type="button" onclick="addAd()">Criar Anúncio</button>
+    </form>
+    <button class="back-button" onclick="showProfileScreen()">Perfil</button>
+    <button class="back-button" onclick="showLoginScreen()">Voltar à Tela Inicial</button>
+</div>
+
+<div class="container" id="ads-screen" style="display: none;">
+    <h2>Anúncios</h2>
+    <input type="text" id="search-name" placeholder="Buscar por nome">
+    <input type="number" id="search-price" placeholder="Buscar por valor">
+    <button type="button" onclick="filterAds()">Filtrar</button>
+    <div id="ads-list"></div>
+    <button class="back-button" onclick="showCreateAdScreen()">Voltar</button>
+</div>
+
+<div class="container" id="purchase-screen" style="display: none;">
+    <h2>Finalizar Compra</h2>
+    <p id="selected-ad"></p>
+    <label for="payment-method">Forma de Pagamento:</label>
+    <select id="payment-method" onchange="handlePaymentMethod()">
+        <option value="pix">Pix</option>
+        <option value="boleto">Boleto</option>
+        <option value="cartao">Cartão</option>
+    </select>
+    <div id="card-payment" style="display: none;">
+        <label for="card-number">Número do Cartão:</label>
+        <input type="text" id="card-number" required>
+
+        <label for="card-expiry">Validade:</label>
+        <input type="text" id="card-expiry" required>
+
+        <label for="card-cvv">CVV:</label>
+        <input type="text" id="card-cvv" required>
+
+        <button type="button" onclick="finalizePurchase()">Finalizar Pagamento</button>
+    </div>
+    <button class="back-button" onclick="showAdsScreen()">Voltar</button>
+</div>
+
+<div class="container" id="profile-screen" style="display: none;">
+    <h2>Perfil do Usuário</h2>
+    <img src="profile-placeholder.png" alt="Foto do Perfil" style="width: 100px; height: 100px; border-radius: 50%;">
+    <label for="user-name">Nome:</label>
+    <input type="text" id="user-name" disabled>
+
+    <label for="user-email">Email:</label>
+    <input type="email" id="user-email" disabled>
+
+    <label for="user-cpf">CPF:</label>
+    <input type="text" id="user-cpf" disabled>
+
+    <p id="ad-count">Você criou 0 anúncios.</p>
+    <div id="user-ads"></div>
+    <button class="back-button" onclick="showCreateAdScreen()">Voltar</button>
+</div>
+
+<script>
+    let adCount = 0;
+    const ads = [];
+
+    function showLoginScreen() {
+        document.getElementById('login-screen').style.display = 'block';
+        document.getElementById('create-ad-screen').style.display = 'none';
+        document.getElementById('ads-screen').style.display = 'none';
+        document.getElementById('profile-screen').style.display = 'none';
+        document.getElementById('purchase-screen').style.display = 'none';
+    }
+
+    function showCreateAdScreen() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('create-ad-screen').style.display = 'block';
+        document.getElementById('ads-screen').style.display = 'none';
+        document.getElementById('profile-screen').style.display = 'none';
+        document.getElementById('purchase-screen').style.display = 'none';
+    }
+
+    function showAdsScreen() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('create-ad-screen').style.display = 'none';
+        document.getElementById('ads-screen').style.display = 'block';
+        document.getElementById('profile-screen').style.display = 'none';
+        document.getElementById('purchase-screen').style.display = 'none';
+        renderAds();
+    }
+
+    function showProfileScreen() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('create-ad-screen').style.display = 'none';
+        document.getElementById('ads-screen').style.display = 'none';
+        document.getElementById('profile-screen').style.display = 'block';
+        document.getElementById('purchase-screen').style.display = 'none';
+
+        document.getElementById('ad-count').textContent = `Você criou ${adCount} anúncios.`;
+        renderUserAds();
+
+        // Exemplo de dados do usuário
+        document.getElementById('user-name').value = "João da Silva";
+        document.getElementById('user-email').value = "joao.silva@id.uff.br";
+        document.getElementById('user-cpf').value = "123.456.789-00";
+    }
+
+    function showPurchaseScreen(adName) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('create-ad-screen').style.display = 'none';
+        document.getElementById('ads-screen').style.display = 'none';
+        document.getElementById('profile-screen').style.display = 'none';
+        document.getElementById('purchase-screen').style.display = 'block';
+
+        const ad = ads.find(a => a.name === adName);
+        document.getElementById('selected-ad').textContent = `Você está comprando: ${ad.name} por R$${ad.price}`;
+        document.getElementById('card-payment').style.display = 'none';
+    }
+
+    function handlePaymentMethod() {
+        const method = document.getElementById('payment-method').value;
+        if (method === 'cartao') {
+            document.getElementById('card-payment').style.display = 'block';
+        } else {
+            document.getElementById('card-payment').style.display = 'none';
+        }
+    }
+
+    function finalizePurchase() {
+        const adName = document.getElementById('selected-ad').textContent.split(': ')[1].split(' por ')[0];
+        const ad = ads.find(a => a.name === adName);
+        if (ad) {
+            ad.sold = true;
+        }
+        showAdsScreen();
+    }
+
+    function validateLogin() {
+        const email = document.getElementById('email').value;
+        const errorElement = document.getElementById('login-error');
+
+        if (email.endsWith('@id.uff.br')) {
+            errorElement.style.display = 'none';
+            showCreateAdScreen();
+        } else {
+            errorElement.style.display = 'block';
+        }
+    }
+
+    function addAd() {
+        const name = document.getElementById('item-name').value;
+        const description = document.getElementById('item-description').value;
+        const price = document.getElementById('item-price').value;
+        const userName = "João da Silva"; // Exemplo de usuário
+        const userEmail = "joao.silva@id.uff.br";
+
+        const newAd = {
+            name,
+            description,
+            price,
+            user: { name: userName, email: userEmail },
+            sold: false
+        };
+
+        ads.push(newAd);
+        adCount++;
+        document.getElementById('create-ad-form').reset();
+        showAdsScreen();
+    }
+
+    function renderAds() {
+        const adsList = document.getElementById('ads-list');
+        adsList.innerHTML = '';
+
+        ads.forEach(ad => {
+            const adElement = document.createElement('div');
+            adElement.className = 'item';
+
+            adElement.innerHTML = `
+                <h3>${ad.name}</h3>
+                <p>${ad.description}</p>
+                <p><strong>R$${ad.price}</strong></p>
+                <div class="user-info">
+                    <p><strong>Criado por:</strong></p>
+                    <p>Nome: ${ad.user.name}</p>
+                    <p>Email: ${ad.user.email}</p>
+                </div>
+                ${ad.sold ? '<p class="sold">VENDIDO</p>' : `<button onclick="showPurchaseScreen(${JSON.stringify(ad.name)})">Comprar</button>`}
+            `;
+
+            adsList.appendChild(adElement);
+        });
+    }
+
+    function renderUserAds() {
+        const userAds = document.getElementById('user-ads');
+        userAds.innerHTML = '';
+
+        ads.filter(ad => ad.user.name === "João da Silva").forEach(ad => {
+            const adElement = document.createElement('div');
+            adElement.className = 'item';
+
+            adElement.innerHTML = `
+                <h3>${ad.name}</h3>
+                <p>${ad.description}</p>
+                <p><strong>R$${ad.price}</strong></p>
+            `;
+            userAds.appendChild(adElement);
+        });
+    }
+</script>
+</body>
+</html>
